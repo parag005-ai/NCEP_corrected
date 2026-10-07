@@ -1,0 +1,42 @@
+Test_ID,Component,Scenario,Expected,Actual,Status,Severity,Evidence,Root_Cause_or_Blocker
+AUTH-001,Authentication,Doctor login,200 with doctor role,200 user-doctor-001 role doctor,VERIFIED_WORKING,N/A,Live API and UI dashboard login,""
+AUTH-002,Authentication,Admin login,200 with admin role,200 user-admin-001 role admin,VERIFIED_WORKING,N/A,Live API,""
+AUTH-003,Authentication,Superadmin login,200 with superadmin role,200 user-superadmin-001 role superadmin,VERIFIED_WORKING,N/A,Live API,""
+AUTH-004,Authorization,Unauthenticated record access,401,401 Invalid or expired token,VERIFIED_WORKING,N/A,Live API,""
+AUTH-005,Authorization,Doctor cross-organization record access,Hidden or denied,404 ECG record not found,VERIFIED_WORKING,N/A,Live API against ecg-005,""
+AUTH-006,Authorization,Admin cross-organization record access,Allowed,200,VERIFIED_WORKING,N/A,Live API against ecg-005,""
+AUTH-007,Authorization,Superadmin cross-organization record access,Allowed,200,VERIFIED_WORKING,N/A,Live API against ecg-005,""
+UPL-001,Upload UI,Select WFDB header plus DAT plus XYZ as one upload,All companion files retained together,"UI listed s0017lre.hea, s0017lre.dat, s0017lre.xyz; 3.30 MB",VERIFIED_WORKING,N/A,Live browser,""
+UPL-002,Upload UI,Choose patient before upload,Patient attached to request,Anaya Rao pat-001 selected,VERIFIED_WORKING,N/A,Live browser,""
+UPL-003,Upload UI,Complete canonical upload,UI receives successful canonical record,"Progress reached 100% then NCEP API request failed (504)",BROKEN,P0,Live browser,Long synchronous ingest exceeded Netlify proxy response window
+UPL-004,Upload contract,Advertised formats match backend parsers,Every accepted/advertised format has canonical parser,"UI advertises EDF/PDF/PNG/JPG but canonical registry lacks those parsers",PARTIALLY_WORKING,P2,Static route and parser registry trace,Frontend/backend format contract mismatch
+ING-001,Format detection,Detect supplied bundle as WFDB,WFDB detected,sourceFormat WFDB,VERIFIED_WORKING,N/A,Live canonical record ecg-ed314afc,""
+ING-002,WFDB parser,Load all header-referenced signal files,15 channels loaded,"I II III aVR aVL aVF V1-V6 X Y Z",VERIFIED_WORKING,N/A,Live canonical record metadata,""
+ING-003,WFDB parser,Preserve signal dimensions,1000 Hz and 115200 samples,"1000 Hz; 115200 samples; 115.2 seconds",VERIFIED_WORKING,N/A,Live canonical record metadata,""
+ING-004,Format detection,Reject orphan DAT companion,422 with actionable message,"422: matching .hea header required",VERIFIED_WORKING,N/A,Live negative API test,""
+ING-005,Input validation,Reject missing files and patient,422 validation error,422 for files and patientId,VERIFIED_WORKING,N/A,Live negative API test,""
+META-001,Metadata extraction,Extract available source demographics and identify gaps,Known values retained and missing fields surfaced,"Age/sex available in header; validator warned patient_id name date_of_birth hospital clinician clinical_history missing",PARTIALLY_WORKING,P2,Header plus live validation issue,WFDB header does not contain all workflow metadata
+VAL-001,Validation,Allow technically usable record with warnings,Canonical record created with warning,validationStatus WARNING and issue details persisted,VERIFIED_WORKING,N/A,Live canonical record,""
+CAN-001,Canonical model,Create canonical ECG after parse,Record with stable canonical ID,"ecg-ed314afc / ae4d60a2-9c5d-4783-a82a-1da59b922d65",VERIFIED_WORKING,N/A,Live record list/detail,"UI timed out after server-side commit"
+CAN-002,Canonical model,Preserve XYZ availability,xyzAvailable true,xyzAvailable true,VERIFIED_WORKING,N/A,Live record detail,""
+PRE-001,Preprocessing,Run ingestion preprocessing and persist outputs,Derived quality and beat metadata persisted,"qualityScore 0.120720245446648; low_snr; beatCount 139",VERIFIED_WORKING,N/A,Live record detail,""
+STO-001,Artifact storage,Keep canonical waveform durably readable,Waveform remains retrievable,"GET waveform returned No waveform file for this record",BROKEN,P0,Live API for ecg-ed314afc,Local-path persistence and best-effort backup are not a durable contract
+STO-002,Artifact recovery,Hydrate missing local artifacts promptly,Artifact restored or terminal error returned,Report job remained RUNNING at LOAD_GENERATION_CONTEXT with 0 progress, BROKEN,P0,Live report job rgj-1294b55f04b4,Hydration/retrieval path did not complete
+SP-001,Signal processing,Execute report-time SP on supplied record,Measured intervals and morphology produced,Not reached because generation context never loaded,NOT_CONNECTED,P0,Live job stage and code trace,Upstream artifact retrieval block
+SP-002,Signal processing,Use ingestion preprocessing artifact for report,Single canonical preprocessed source reused,Report code reloads raw bundle and preprocesses independently,PARTIALLY_WORKING,P2,Static code trace,Duplicated preprocessing paths can diverge
+SP-003,Clinical scoring,Generate governed clinical interpretation,Validated clinical findings with provenance,No governed clinical scoring or interpretation implementation,NOT_IMPLEMENTED,P1,Static code trace,Clinical algorithms and validation are absent
+REP-001,Report API,Create generation job,202/queued job,rgj-1294b55f04b4 created and advanced to RUNNING,VERIFIED_WORKING,N/A,Live API,""
+REP-002,Report orchestration,Finish or fail job deterministically,Terminal COMPLETED or FAILED state,"Stuck RUNNING; 0%; LOAD_GENERATION_CONTEXT; attemptCount 1",BROKEN,P0,Repeated live polling,Context/artifact load does not terminate
+REP-003,Summary report,Produce summary report for current record,Summary artifact and measurements,No reportId and no generated report,NOT_CONNECTED,P0,Live generated-report query returned empty,Blocked by REP-002
+REP-004,Detailed report,Produce detailed report for current record,Detailed report and measurements,No reportId and no generated report,NOT_CONNECTED,P0,Live generated-report query returned empty,Blocked by REP-002
+REP-005,HTML rendering,Render HTML,Stored HTML artifact,Not reached,NOT_CONNECTED,P0,Live job state,Blocked by REP-002
+REP-006,PDF rendering,Render PDF,Stored PDF artifact,Not reached,NOT_CONNECTED,P0,Live job state,Blocked by REP-002
+REP-007,Artifact retrieval,Download generated artifacts,Authorized artifact response,No artifacts exist for current job,NOT_CONNECTED,P0,Live generated-report query returned empty,Blocked by REP-002
+VIEW-001,ECG viewer,Retrieve waveform for canonical record,Downsampled waveform JSON,"404 No waveform file for this record",BROKEN,P1,Live waveform API,Artifact unavailable to route
+VIEW-002,ECG viewer,Frontend viewer consumes waveform endpoint,Interactive real signal display,Frontend has no production call to canonical waveform endpoint,NOT_CONNECTED,P1,Static frontend trace,Viewer is not wired to canonical waveform API
+FMT-001,CSV ingestion,Live end-to-end ingest,Parse and canonicalize,Parser registered but no CSV fixture supplied,PARTIALLY_WORKING,P2,Static registry and scope limitation,Not live validated
+FMT-002,XML ingestion,Live end-to-end ingest,Parse and canonicalize,Parser registered but no XML fixture supplied,PARTIALLY_WORKING,P2,Static registry and scope limitation,Not live validated
+FMT-003,DICOM ingestion,Live end-to-end ingest,Parse and canonicalize,Parser registered but no DICOM fixture supplied,PARTIALLY_WORKING,P2,Static registry and scope limitation,Not live validated
+FMT-004,SCP-ECG ingestion,Live end-to-end ingest,Parse and canonicalize,Parser registered but no SCP-ECG fixture supplied,PARTIALLY_WORKING,P2,Static registry and scope limitation,Not live validated
+FMT-005,EDF ingestion,Canonical ingest,Registered EDF parser,None registered,NOT_IMPLEMENTED,P2,Static parser registry,UI advertises unsupported format
+CLN-001,Clinical validity,Confirm diagnostic claims,Clinically validated results,No live report and no governed clinical validation,CLINICALLY_UNCONFIRMED,P1,Live block plus static code trace,Requires validated algorithms datasets thresholds and clinical review

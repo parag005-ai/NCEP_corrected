@@ -1,0 +1,22 @@
+# Root Dockerfile builds only the backend; exclude everything else so the
+# build context upload stays small.
+NCEPfrontend/
+deploy/
+*.zip
+Fw_ codes/
+tesitng files/
+
+backend/.venv/
+backend/__pycache__/
+backend/**/__pycache__/
+backend/*.pyc
+backend/.pytest_cache/
+backend/.env
+backend/.env.example
+backend/ncep.db
+backend/data/
+backend/uploads/
+backend/tests/
+backend/README.md
+
+.git/

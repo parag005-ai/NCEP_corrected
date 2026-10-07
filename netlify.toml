@@ -1,0 +1,23 @@
+[build]
+  base = "NCEPfrontend"
+  command = "npm run build:next"
+  publish = ".next"
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
+# Proxies API calls through Netlify's own edge instead of the browser calling
+# Render directly. Netlify and Render are different registrable domains, so a
+# direct cross-site call makes the backend's session cookie third-party from
+# Chrome's perspective -- Chrome blocks that by default for many users (no
+# cookie ever lands, no amount of CORS/SameSite config on the backend fixes
+# it). Proxied through here, the browser only ever talks to
+# ncep-frontend.netlify.app: the cookie becomes an ordinary first-party
+# cookie, with no backend change needed. status = 200 (not a redirect) is
+# what makes this a proxy -- the URL bar and Origin stay on the Netlify
+# domain throughout.
+[[redirects]]
+  from = "/api/*"
+  to = "https://ncep-backend.onrender.com/api/:splat"
+  status = 200
+  force = true

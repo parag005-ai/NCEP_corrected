@@ -1,0 +1,20 @@
+Trace_ID,Timestamp_UTC,Actor,Method,Endpoint,Request_Summary,HTTP_Status,Response_or_State,Duration_ms,Correlation_ID,Result
+API-001,2026-10-06,Anonymous,GET,https://ncep-frontend.netlify.app/api/health,None,200,"status ok; service ncep-backend",2337,,PASS
+API-002,2026-10-06,Anonymous,GET,https://ncep-backend.onrender.com/api/health,None,200,"status ok; service ncep-backend",1001,,PASS
+API-003,2026-10-06,Doctor,POST,/api/auth/login,doctor demo credentials,200,"user-doctor-001; role doctor",,,PASS
+API-004,2026-10-06,Admin,POST,/api/auth/login,admin demo credentials,200,"user-admin-001; role admin",,,PASS
+API-005,2026-10-06,Superadmin,POST,/api/auth/login,superadmin demo credentials,200,"user-superadmin-001; role superadmin",,,PASS
+API-006,2026-10-06T13:50Z,Doctor,POST,/api/ecg-records/ingest,"patientId pat-001; s0017lre.hea + .dat + .xyz",504,"Browser displayed NCEP API request failed (504) after 100% upload",,,FAIL
+API-007,2026-10-06T13:50:12Z,Doctor,GET,/api/ecg-records,Newest record query,200,"ecg-ed314afc committed; canonical recordId ae4d60a2-9c5d-4783-a82a-1da59b922d65",,,PASS_WITH_ORPHAN_RISK
+API-008,2026-10-06,Doctor,GET,/api/ecg-records/ecg-ed314afc,None,200,"WFDB; 1000 Hz; 15 leads; 115200 samples; WARNING; low_snr; beatCount 139",,,PASS
+API-009,2026-10-06,Anonymous,GET,/api/ecg-records/ecg-ed314afc,None,401,Invalid or expired token,,,PASS
+API-010,2026-10-06,Doctor,GET,/api/ecg-records/ecg-005,None,404,ECG record not found,,,PASS
+API-011,2026-10-06,Admin,GET,/api/ecg-records/ecg-005,None,200,Record accessible,,,PASS
+API-012,2026-10-06,Superadmin,GET,/api/ecg-records/ecg-005,None,200,Record accessible,,,PASS
+API-013,2026-10-06,Doctor,POST,/api/ecg-records/ingest,"patientId pat-001; orphan s0017lre.dat",422,"format_detection: matching .hea header required",,,PASS
+API-014,2026-10-06,Doctor,POST,/api/ecg-records/ingest,No files or patientId,422,"missing files and patientId",,,PASS
+API-015,2026-10-06,Doctor,GET,"/api/ecg-records/ecg-ed314afc/waveform?leads=I,II,V1&maxPoints=1000",None,404,No waveform file for this record,,,FAIL
+API-016,2026-10-06T14:12:00Z,Doctor,POST,/api/report-generation/jobs,ecgRecordId ecg-ed314afc,202,"job rgj-1294b55f04b4; QUEUED",,rgj-1294b55f04b4,PASS
+API-017,2026-10-06T14:12:02Z,Doctor,GET,/api/report-generation/jobs/rgj-1294b55f04b4,None,200,"RUNNING; progress 0; LOAD_GENERATION_CONTEXT; attemptCount 1",,rgj-1294b55f04b4,FAIL
+API-018,2026-10-06,Doctor,GET,/api/report-generation/jobs/rgj-1294b55f04b4,Repeated polling,200,"Still RUNNING at LOAD_GENERATION_CONTEXT; no error; no reportId",,rgj-1294b55f04b4,FAIL
+API-019,2026-10-06,Doctor,GET,/api/reports?ecgRecordId=ecg-ed314afc,None,200,Empty list,,rgj-1294b55f04b4,FAIL

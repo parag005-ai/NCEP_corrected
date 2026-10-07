@@ -1,0 +1,44 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  min-height: 100vh;
+  background: #f7faf8;
+  color: #181c1c;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+.ecg-path {
+  stroke-dasharray: 1000;
+  stroke-dashoffset: 1000;
+}
+
+.scrollbar-none {
+  scrollbar-width: none;
+  scrollbar-gutter: stable;
+  -ms-overflow-style: none;
+}
+
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+  width: 0;
+}

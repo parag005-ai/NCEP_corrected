@@ -1,0 +1,7 @@
+node_modules/
+.next/
+out/
+tests/
+test-results/
+playwright-report/
+.git/

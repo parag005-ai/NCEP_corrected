@@ -1,0 +1,36 @@
+Test_ID,Area,Scenario,Method,Status,Evidence,Acceptance_Impact,Notes
+P0-001,Build,Python source compilation,compileall app and tests,PASS,No syntax errors,Supports source readiness,
+P0-002,Regression,Existing storage tests,pytest tests/test_storage.py,PASS,7 tests passed,Storage regression coverage,
+P0-003,Regression,Existing ingestion tests,pytest tests/test_ingestion.py,PASS,8 tests passed including WFDB CSV XML DICOM SCP,Parser and canonicalization regression coverage,2 pydicom deprecation warnings
+P0-004,Idempotency,Fingerprint independent of multipart order,Unit test,PASS,Same file set in reverse order produced same fingerprint,Retry identity stable,
+P0-005,Idempotency,Tenant/requester scoping,Unit test,PASS,Same request stable; other tenant differs,Cross-tenant collision prevented,
+P0-006,Ingestion,Background worker reopens staged upload,Unit test,PASS,UUID session reopened with both companion files,Async handoff supported,
+P0-007,Artifact,Create checksum manifest,Unit test,PASS,Manifest created with SHA-256 entries,Canonical success contract implemented,
+P0-008,Artifact,Verify intact manifest,Unit test,PASS,All mandatory test artifacts verified,Integrity read path implemented,
+P0-009,Artifact,Detect altered mandatory artifact,Unit test,PASS,Checksum mismatch raised,Corruption cannot be treated healthy,
+P0-010,Artifact,Required object-storage write failure,Failure injection unit test,PASS,Write raised FileStorageError-equivalent instead of swallowing failure,Canonical record cannot report success,
+P0-011,Report,Stale RUNNING job,Unit test,PASS,Status changed to FAILED with REPORT_JOB_STALE and failed stage,Indefinite RUNNING prevented,
+P0-012,Database,Alembic head,alembic heads,PASS,9f42a81ce310 is single head,Migration ordering valid,
+P0-013,Database,Full SQLite migration chain,alembic upgrade on disposable SQLite,BLOCKED,Pre-existing d4def27 migration uses PostgreSQL ALTER TYPE syntax,Does not validate production migration,Run on PostgreSQL staging
+P0-014,Frontend,TypeScript compile,tsc --noEmit,BLOCKED,Managed host denied/incompletely downloaded package dependencies,Frontend compile not claimed,Run in CI or normal development environment
+P0-015,Report,Existing reporting/API suite,pytest reporting tests,BLOCKED,Windows Application Control blocked downloaded scikit-learn DLL during NeuroKit import,Report regression not claimed,Run in Linux CI/deployment image
+P0-016,Ingestion,First repaired production upload with s0017lre bundle,Live post-deploy test,NOT_RUN,Code not deployed,Required for final acceptance,Expect HTTP 202 and SUCCEEDED
+P0-017,Ingestion,Retry same successful upload,Live post-deploy test,NOT_RUN,Code not deployed,Required for duplicate prevention,Expect same job and ECG ID
+P0-018,Ingestion,Concurrent duplicate request,Live/integration test,NOT_RUN,Database unique path implemented but not exercised against PostgreSQL,Required for race validation,
+P0-019,Ingestion,Missing .hea,Post-fix API test,NOT_RUN,Parser behavior pre-existed; async terminal behavior awaits deployment,Required failure case,Expect 202 then FAILED MissingRequiredFileError
+P0-020,Ingestion,Missing companion referenced by header,Post-fix API test,NOT_RUN,Not deployed,Required failure case,Expect terminal FAILED
+P0-021,Ingestion,Corrupted file,Post-fix API test,NOT_RUN,Not deployed,Required failure case,Expect terminal FAILED and no ECG row
+P0-022,Ingestion,Invalid ingest job ID,Post-fix API test,NOT_RUN,Route implemented but not deployed,Required negative case,Expect tenant-safe 404
+P0-023,Artifact,Waveform retrieval after successful ingest,Live post-deploy test,NOT_RUN,Repository route implemented but not deployed,Required for final acceptance,Must use real samples
+P0-024,Artifact,Metadata retrieval,Live post-deploy test,NOT_RUN,Existing record API unchanged,Required regression,
+P0-025,Artifact,Artifact manifest endpoint,Live post-deploy test,NOT_RUN,Sanitized endpoint implemented,Required for final acceptance,Verify checksums and mandatory list
+P0-026,Artifact,Cache loss and durable hydration,Deployment restart/cache-loss test,NOT_RUN,Requires configured production durable store,Required for durability acceptance,
+P0-027,Report,Valid repaired ECG report,Live post-deploy test,NOT_RUN,Not deployed and local SP runtime blocked,Required for final acceptance,
+P0-028,Report,Missing waveform produces terminal FAILED,Live/integration test,PARTIAL,Repository raises and stale watchdog unit test passed; end-to-end job not executed,Required P0 behavior,Run in Linux CI and staging
+P0-029,Report,Invalid ECG record ID,Post-fix API test,NOT_RUN,Existing authorization path unchanged,Required negative case,
+P0-030,Report,Repeated report generation,Live post-deploy test,NOT_RUN,Not deployed,Required repeat behavior,
+P0-031,Report,Escaped worker exception,Code review plus compilation,PARTIAL,Outer guard persists REPORT_WORKER_EXCEPTION; suite blocked by DLL,Required failure behavior,Add CI execution
+P0-032,Report,Context-load timeout,Code review plus compilation,PARTIAL,Artifact and SP context futures use configured bound; suite blocked by DLL,Required P0 behavior,Add CI execution with blocking fake store
+P0-033,Security,Waveform tenant authorization,Code review,PARTIAL,Existing _get_accessible_ecg retained before repository access,Regression test pending,
+P0-034,Clinical,No SP/clinical algorithm changes,Changed-file inspection,PASS,No files under backend/app/signal_processing modified,Scope constraint satisfied,
+P0-035,Acceptance,Complete supplied WFDB to PDF chain,Live post-deploy test,NOT_RUN,Deployment and production configuration pending,FINAL_ACCEPTANCE_BLOCKED,Do not declare repair accepted yet

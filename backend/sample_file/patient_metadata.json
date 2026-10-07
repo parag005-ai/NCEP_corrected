@@ -1,0 +1,10 @@
+{
+  "patient_id": null,
+  "name": null,
+  "date_of_birth": null,
+  "age": 63,
+  "sex": "male",
+  "hospital": null,
+  "clinician": null,
+  "clinical_history": null
+}

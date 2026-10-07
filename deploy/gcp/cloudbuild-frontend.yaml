@@ -1,0 +1,16 @@
+# Cloud Build config for the frontend image -- needed (instead of the plain
+# `gcloud builds submit --tag` shortcut) because NEXT_PUBLIC_API_BASE_URL must
+# be passed as a Docker build-arg so Next.js inlines the backend URL at
+# build time. Invoked by 03-deploy-frontend.sh with substitutions
+# _IMAGE and _API_BASE_URL.
+steps:
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - --build-arg
+      - NEXT_PUBLIC_API_BASE_URL=${_API_BASE_URL}
+      - -t
+      - ${_IMAGE}
+      - .
+images:
+  - ${_IMAGE}

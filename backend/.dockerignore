@@ -1,0 +1,12 @@
+.venv/
+__pycache__/
+**/__pycache__/
+*.pyc
+.pytest_cache/
+.env
+.env.example
+ncep.db
+data/
+uploads/
+tests/
+README.md

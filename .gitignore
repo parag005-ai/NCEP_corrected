@@ -1,0 +1,49 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+.venv/
+venv/
+.env
+.env.*
+.pytest_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# Node / Next.js
+node_modules/
+.next/
+out/
+build/
+dist/
+coverage/
+*.tsbuildinfo
+
+# OS / editor
+.DS_Store
+.vscode/
+.idea/
+.claude/
+
+# Uploads / local data
+uploads/
+data/
+*.log
+
+# Deploy scripts write the live deployed URL here (deploy/gcp/*.sh) -- state, not source.
+deploy/gcp/.backend-url
+deploy/gcp/.frontend-url
+
+# Local package/cache and generated artifacts
+.pnpm-store/
+output/
+tmp/
+
+# Local databases and ECG artifacts
+*.db
+*.sqlite
+*.sqlite3
+backend/storage/

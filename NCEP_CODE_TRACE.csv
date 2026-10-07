@@ -1,0 +1,22 @@
+Workflow,Step,File,Symbol,Input,Output,Called_By,Calls,Status,Breakpoint
+ECG ingestion,1,backend/app/routers/ecg.py,ingest_ecg,multipart files patientId,user-visible ECGRecord,FastAPI route,UploadOrchestrator.create_session,VERIFIED_WORKING,
+ECG ingestion,2,backend/app/ingestion/record_creator.py,create_ecg_record,UploadSession paths,canonical IngestionResult,ingest_ecg,detect_format/get_parser/parser/metadata/validation/builder/storage,VERIFIED_WORKING,
+CSV ingestion,1,backend/app/ingestion/detectors/format_detector.py,detect_format,.csv path,ECGFormat.CSV,create_ecg_record,CSVParser,VERIFIED_WORKING,
+WFDB ingestion,1,backend/app/ingestion/detectors/format_detector.py,detect_format,.hea plus companions,ECGFormat.WFDB,create_ecg_record,WFDBParser,VERIFIED_WORKING,
+DICOM ingestion,1,backend/app/ingestion/detectors/format_detector.py,detect_format,.dcm/.dicom or DICM signature,ECGFormat.DICOM,create_ecg_record,DICOMParser,VERIFIED_WORKING,
+XML ingestion,1,backend/app/ingestion/detectors/format_detector.py,detect_format,.xml with XML prefix,ECGFormat.XML,create_ecg_record,XMLParser,VERIFIED_WORKING,
+Validation,1,backend/app/ingestion/validator.py,ValidationOrchestrator.validate,ParsedECG and metadata,ValidatedParsedECG or exception,create_ecg_record,Format/File/Signal/Metadata/Quality validators,VERIFIED_WORKING,
+Preprocessing,1,backend/app/preprocessing/pipeline.py,PreprocessingOrchestrator.run,canonical waveform,PreprocessingResult,ingest_ecg,filters/baseline/normalization/beats/quality,VERIFIED_WORKING,
+SP execution,1,backend/app/reporting/context/signal_processing_builder.py,build_signal_processing_outputs,artifact bundle,SignalProcessingOutputs,GenerationContextLoader,WaveformReader/analyze_waveform,VERIFIED_WORKING,
+SP execution,2,backend/app/signal_processing/analysis.py,analyze_waveform,leads and sampling rate,SignalProcessingResult,build_signal_processing_outputs,P QRS T QT P-SAECG QRS-SAECG modules,VERIFIED_WORKING,
+SP output conversion,1,backend/app/reporting/context/signal_processing_builder.py,_ecg_parameters/_clinical_measurements,SignalProcessingResult metrics,context payload maps,build_signal_processing_outputs,ContextSection,PARTIALLY_WORKING,No versioned external contract or persistent result
+Report generation,1,backend/app/reporting/api/routes.py,request_report_generation,ecgRecordId,job response,frontend summary/detailed pages,create_generation_job and BackgroundTasks,VERIFIED_WORKING,
+Report generation,2,backend/app/reporting/api/service.py,run_generation_job,job id,completed failed or waiting job,BackgroundTasks,WorkflowOrchestrator.run,VERIFIED_WORKING,
+Report generation,3,backend/app/reporting/context/loader.py,GenerationContextLoader.load,job,GenerationContext,LoadGenerationContextStage,artifact/access/SP builder,VERIFIED_WORKING,
+Report generation,4,backend/app/reporting/orchestrator/pipeline.py,build_report_pipeline,DB session,ordered stages,build_orchestrator,context/visualization/builders/HTML/PDF/storage,VERIFIED_WORKING,
+Detailed report,1,backend/app/reporting/orchestrator/composition_stages.py,BuildDetailedReportStage,GenerationContext,Detailed ReportDocument,WorkflowOrchestrator,DetailedReportBuilder,VERIFIED_WORKING,
+PDF generation,1,backend/app/reporting/orchestrator/pdf_stage.py,GeneratePDFDocumentsStage,rendered HTML,pending PDF artifacts,WorkflowOrchestrator,ChromiumPDFRenderer,VERIFIED_WORKING,
+Artifact retrieval,1,backend/app/reporting/api/routes.py,download_report_pdf,report id,PDF response,frontend detailed page,artifact repository/access check,VERIFIED_WORKING,
+End-to-end ECG to SP to report,1,NCEPfrontend/src/app/doctor/ecg-upload/page.tsx,completeUpload,files and patient,summary route,doctor upload UI,ingestECGRecord/saveReport/router push,VERIFIED_WORKING,
+End-to-end ECG to SP to report,2,NCEPfrontend/src/app/report/[reportId]/summary/ClientPage.tsx,load/pollJob,report or ECG id,rendered SummaryReportDocument,summary route,requestReportGeneration/poll/summary API,VERIFIED_WORKING,
+Clinical interpretation,1,backend/app/reporting/context/signal_processing_builder.py,build_signal_processing_outputs,raw SP result,awaiting clinical_findings,GenerationContextLoader,ContextSection.awaiting_signal_processing,CLINICALLY_UNCONFIRMED,No approved clinical rules or source

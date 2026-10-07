@@ -1,0 +1,20 @@
+Trace_ID,Measurement_or_Output,Expected_SP_Producer,Expected_Raw_Key,Live_SP_Produced,Mapped_to_Report,Persisted_for_Current_Record,Summary_Report,Detailed_Report,Expected_Unit,Status,Evidence
+SPT-001,Heart rate,analyze_waveform,heart_rate_bpm,No,Yes,No,No,No,bpm,NOT_CONNECTED,Job blocked at LOAD_GENERATION_CONTEXT
+SPT-002,RR interval,analyze_waveform,rr_interval_ms,No,Yes,No,No,No,ms,NOT_CONNECTED,Job blocked at LOAD_GENERATION_CONTEXT
+SPT-003,QRS duration,analyze_waveform,qrs_duration_ms,No,Yes,No,No,No,ms,NOT_CONNECTED,Job blocked at LOAD_GENERATION_CONTEXT
+SPT-004,QT interval,analyze_waveform,qt_interval_ms,No,Yes,No,No,No,ms,NOT_CONNECTED,Job blocked at LOAD_GENERATION_CONTEXT
+SPT-005,QTc Bazett,analyze_waveform,qtc_bazett_ms,No,Yes,No,No,No,ms,NOT_CONNECTED,Job blocked at LOAD_GENERATION_CONTEXT
+SPT-006,QTc Fridericia,analyze_waveform,qtc_fridericia_ms,No,Yes,No,No,No,ms,NOT_CONNECTED,Job blocked at LOAD_GENERATION_CONTEXT
+SPT-007,Tpeak-Tend,analyze_waveform,tpeak_tend_ms,No,Yes,No,No,No,ms,NOT_CONNECTED,Job blocked at LOAD_GENERATION_CONTEXT
+SPT-008,P duration,analyze_waveform,p_duration_ms,No,Yes,No,No,No,ms,NOT_CONNECTED,Job blocked at LOAD_GENERATION_CONTEXT
+SPT-009,P dispersion,analyze_waveform,p_dispersion_ms,No,Yes,No,No,No,ms,NOT_CONNECTED,Job blocked at LOAD_GENERATION_CONTEXT
+SPT-010,Filtered P-wave duration,analyze_waveform,filtered_p_duration_ms,No,Yes,No,No,No,ms,NOT_CONNECTED,Job blocked at LOAD_GENERATION_CONTEXT
+SPT-011,RMS20,analyze_waveform,rms20_uv,No,Yes,No,No,No,uV,NOT_CONNECTED,Job blocked at LOAD_GENERATION_CONTEXT
+SPT-012,LAS20,analyze_waveform,las20_ms,No,Yes,No,No,No,ms,NOT_CONNECTED,Job blocked at LOAD_GENERATION_CONTEXT
+SPT-013,Filtered QRS duration,analyze_waveform,filtered_qrs_duration_ms,No,Yes,No,No,No,ms,NOT_CONNECTED,Job blocked at LOAD_GENERATION_CONTEXT
+SPT-014,RMS40,analyze_waveform,rms40_uv,No,Yes,No,No,No,uV,NOT_CONNECTED,Job blocked at LOAD_GENERATION_CONTEXT
+SPT-015,LAS40,analyze_waveform,las40_ms,No,Yes,No,No,No,ms,NOT_CONNECTED,Job blocked at LOAD_GENERATION_CONTEXT
+SPT-016,R-peak count,analyze_waveform,r_peak_count,No,Yes,No,No,No,count,NOT_CONNECTED,"Report-time SP not reached; ingestion separately persisted beatCount 139"
+SPT-017,Signal quality flags,analyze_waveform,quality_flags,No,Yes,No,No,No,text,NOT_CONNECTED,"Report-time SP not reached; ingestion separately persisted low_snr"
+SPT-018,Signal quality score,Clinical scoring layer,signal_quality_score,No,No,No,No,No,score,NOT_IMPLEMENTED,No governed report-time score contract found
+SPT-019,Clinical findings,Clinical interpretation layer,clinical_findings,No,No,No,No,No,text,CLINICALLY_UNCONFIRMED,No governed diagnostic algorithm or live report

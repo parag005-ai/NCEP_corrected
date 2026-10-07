@@ -1,0 +1,10 @@
+node_modules/
+.next/
+out/
+tests/
+test-results/
+playwright-report/
+.git/
+.env.local
+.env.local.example
+README.md

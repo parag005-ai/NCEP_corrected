@@ -1,0 +1,515 @@
+{#
+  NCEP Detailed Clinical Report -- the approved print-first clinical document.
+
+  Structure, ordering, layout and class names are the canonical specification's
+  and are not modified here. This template supplies no content of its own: every
+  displayed value is bound from the composed report document, and every value
+  the document reports as unavailable renders its standardized placeholder.
+#}
+{% macro status_pill(value) -%}
+{% if value and value.is_available %}<span class="status status--unavailable">Not classified</span>{% else %}<span class="status status--unavailable">Unavailable</span>{% endif %}
+{%- endmacro %}
+{% macro brand(labelled=false) -%}
+<div class="brand"{% if labelled %} aria-label="CardioNexus Neuro-Cardiac Electrophysiology Platform"{% endif %}>
+  <svg class="brand-mark" viewBox="0 0 40 40"{% if labelled %} role="img" aria-label="CardioNexus mark"{% else %} aria-hidden="true"{% endif %}>
+    <path d="M20 34 L8 22 C2 16 2 6 10 6 C14 6 18 10 20 14 C22 10 26 6 30 6 C38 6 38 16 32 22 Z" fill="#075e8e"/>
+  </svg>
+  <div>
+    <div class="brand-name">CardioNexus</div>
+    <div class="brand-subtitle">Neuro-Cardiac Electrophysiology Platform</div>
+  </div>
+</div>
+{%- endmacro %}
+{% macro report_header(labelled=false) -%}
+<header class="report-header">
+  {{ brand(labelled) }}
+  <div class="header-meta">
+    <div class="meta-item"><span class="meta-label">Patient ID</span><span class="meta-value">{{ display('PATIENT_INFORMATION', 'Patient ID') }}</span></div>
+    <div class="meta-item"><span class="meta-label">Report ID</span><span class="meta-value">{{ report.id }}</span></div>
+    <div class="meta-item"><span class="meta-label">Study date</span><span class="meta-value">{{ display('RECORDING_SUMMARY', 'Recording date') }}</span></div>
+    <div class="sample-label">Sample<br>Not for clinical use</div>
+  </div>
+</header>
+{%- endmacro %}
+{% macro takeaway(page) -%}
+<aside class="doctor-takeaway"><span class="takeaway-label">Doctor takeaway</span><p>{{ display('PAGE_TAKEAWAYS', page) }}</p></aside>
+{%- endmacro %}
+{% macro page_footer(middle, number) -%}
+<footer class="report-footer"><span>Report {{ report.id }} · Confidential</span><span>{{ middle }}</span><span class="page-count">{{ number }} / 8</span></footer>
+{%- endmacro %}
+{% macro figure_placeholder(text) -%}
+<div class="panel panel--wash" style="display:grid;place-items:center;min-height:0"><p class="small-note">{{ text }}</p></div>
+{%- endmacro %}
+{% macro interpretation_block(section_id, title) -%}
+{% set part = section(section_id) %}
+<section class="interpretation" aria-label="{{ title }}">
+  <div class="section-label">Clinical interpretation</div>
+  <div class="interpretation-grid">
+    {% for value in part.values %}
+    <div class="interpretation-part"><h4>{{ value.label }}</h4><p>{{ value.display_value }}</p></div>
+    {% endfor %}
+  </div>
+</section>
+{%- endmacro %}
+{% macro measure_table(section_id) -%}
+{% set table = section(section_id) %}
+<table class="measure-table">
+  <thead><tr><th>Metric</th><th>Value</th><th>Reference</th><th>Status</th></tr></thead>
+  <tbody>
+    {% for value in table.values %}
+    <tr>
+      <td class="metric-cell">{{ value.label }}</td>
+      <td class="number-cell">{{ value.display_value }}{% if value.is_available and value.unit %} {{ value.unit }}{% endif %}</td>
+      <td class="reference-cell">{{ value.reference or placeholder }}</td>
+      <td>{{ status_pill(value) }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{%- endmacro %}
+{% macro metric_strip(section_id) -%}
+{% set strip = section(section_id) %}
+<section class="metric-strip" aria-label="{{ strip.title }}">
+  {% for value in strip.values %}
+  <div class="metric">
+    <div class="metric-name">{{ value.label }}</div>
+    <div class="metric-value">{{ value.display_value }}{% if value.is_available and value.unit %} <span class="metric-unit">{{ value.unit }}</span>{% endif %}</div>
+    <div class="metric-ref">{{ value.reference or placeholder }}</div>
+  </div>
+  {% endfor %}
+</section>
+{%- endmacro %}
+{% macro key_values(section_id) -%}
+{% set record = section(section_id) %}
+<dl>
+  {% for value in record.values %}
+  <div class="key-value"><dt>{{ value.label }}</dt><dd>{{ value.display_value }}{% if value.is_available and value.unit %} {{ value.unit }}{% endif %}</dd></div>
+  {% endfor %}
+</dl>
+{%- endmacro %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="CardioNexus clinical decision support report">
+  {# Report metadata embedded for traceability and reproducibility (Sprint 6.18). #}
+  <meta name="ncep:report-id" content="{{ report.id }}">
+  <meta name="ncep:report-version" content="{{ report.version }}">
+  <meta name="ncep:ecg-record-id" content="{{ report.ecg_record_id }}">
+  <meta name="ncep:generation-job-id" content="{{ report.job_id }}">
+  <meta name="ncep:generated-at" content="{{ report.generated_at.isoformat() }}">
+  <meta name="ncep:template-id" content="{{ report.template_id }}">
+  <meta name="ncep:template-version" content="{{ report.template_version }}">
+  <meta name="ncep:pipeline-version" content="{{ report.pipeline_version }}">
+  <meta name="ncep:schema-version" content="{{ report.schema_version }}">
+  <meta name="ncep:software-version" content="{{ report.software_version }}">
+  <title>CardioNexus - {{ report.title }} - {{ report.id }}</title>
+  <style>{{ stylesheet }}</style>
+</head>
+<body>
+
+  <article class="report-page" aria-labelledby="page-1-title">
+    {{ report_header(labelled=true) }}
+
+    <header class="page-header">
+      <div class="section-number">01</div>
+      <div>
+        <div class="page-kicker">Clinical orientation</div>
+        <h1 class="page-title" id="page-1-title">Executive Clinical Summary</h1>
+      </div>
+      <p class="clinical-question">What is the overall status of this patient?</p>
+    </header>
+
+    <main class="page-main executive-layout">
+      <dl class="facts" aria-label="Patient and study details">
+        <div class="fact"><dt>Patient</dt><dd>{{ display('PATIENT_INFORMATION', 'Name') }} <span>· {{ display('PATIENT_INFORMATION', 'Age') }} years · {{ display('PATIENT_INFORMATION', 'Gender') }}</span></dd></div>
+        <div class="fact"><dt>Clinical context</dt><dd>{{ display('PATIENT_INFORMATION', 'Clinical notes') }}</dd></div>
+        <div class="fact"><dt>Referral</dt><dd>{{ display('DOCTOR_INFORMATION', 'Name') }} <span>· {{ display('DOCTOR_INFORMATION', 'Speciality') }}</span></dd></div>
+      </dl>
+
+      <section class="clinical-hero" aria-labelledby="executive-impression">
+        <div class="section-label" id="executive-impression">Integrated impression</div>
+        <p class="clinical-impression">{{ display('INTERPRETATION', 'Integrated impression') }}</p>
+        <p class="clinical-hero-evidence"><strong>Priority evidence:</strong> {{ display('INTERPRETATION', 'Priority evidence') }}</p>
+      </section>
+
+      <section aria-labelledby="domain-summary-heading">
+        <h2 class="subsection-title" id="domain-summary-heading">Domain evidence summary</h2>
+        <div class="domain-ledger">
+          {% for domain in section('DOMAIN_EVIDENCE_SUMMARY').values %}
+          <div class="domain-row">
+            <div class="domain-name">{{ domain.label }}</div>
+            <div>{{ status_pill(domain) }}</div>
+            <div class="domain-summary">{{ domain.display_value }}</div>
+            <div class="page-locator">p.0{{ loop.index + 1 }}</div>
+          </div>
+          {% endfor %}
+        </div>
+      </section>
+
+      <section class="confidence-row" aria-label="Confidence and acceptance">
+        {% for value in section('CONFIDENCE_SUMMARY').values %}
+        <div class="confidence-item"><div class="section-label">{{ value.label }}</div><div class="confidence-value">{{ value.display_value }}</div><div class="confidence-note">{{ value.reference or placeholder }}</div></div>
+        {% endfor %}
+      </section>
+    </main>
+
+    {{ takeaway('Executive Clinical Summary') }}
+    {{ page_footer('Generated ' ~ report.generated_at_display, 1) }}
+  </article>
+
+  <article class="report-page" aria-labelledby="page-2-title">
+    {{ report_header() }}
+
+    <header class="page-header">
+      <div class="section-number">02</div>
+      <div><div class="page-kicker">Recording domain</div><h1 class="page-title" id="page-2-title">Recording &amp; Signal Integrity</h1></div>
+      <p class="clinical-question">Can I trust this recording?</p>
+    </header>
+
+    <main class="page-main integrity-layout">
+      {% set acceptance = section('RECORDING_ACCEPTANCE') %}
+      <section class="quality-banner" aria-label="Recording acceptance">
+        <div class="quality-grade">{{ acceptance.display('Acceptance grade') }}</div>
+        <div class="quality-copy"><strong>Recording validation: {{ acceptance.display('Validation status') }}</strong>
+          {% for note in acceptance.notes %}<p>{{ note }}</p>{% endfor %}
+        </div>
+        <div class="quality-acceptance">{{ acceptance.display('Validation status') }}<br>{{ acceptance.display('Accepted beats') }} beats</div>
+      </section>
+
+      {{ metric_strip('ACQUISITION_METRICS') }}
+
+      {% set visualization = section('RAW_ECG_VISUALIZATION') %}
+      <figure class="figure raw-figure" aria-labelledby="raw-ecg-caption">
+        <div class="figure-header"><h2 class="figure-title">Figure 2.1 - Accepted raw rhythm strip</h2><span class="figure-scale">{% if figure_svg %}{{ visualization.display('Lead') }} · 25 mm/s · 10 mm/mV · {{ display('RECORDING_SUMMARY', 'Sampling rate') }} Hz{% else %}{{ placeholder }}{% endif %}</span></div>
+        {% if figure_svg %}
+        {{ figure_svg }}
+        {% else %}
+        {{ figure_placeholder(visualization.display_placeholder) }}
+        {% endif %}
+        <figcaption class="figure-caption" id="raw-ecg-caption"><strong>Traceability:</strong>
+          {% if figure_svg %}
+          acquisition record {{ display('TRACEABILITY_CHAIN', 'ECG source') }}, unfiltered display copy. Calibration pulse, lead, speed, gain and time axis are retained.
+          {% else %}
+          {{ visualization.display_placeholder }}
+          {% endif %}
+        </figcaption>
+      </figure>
+
+      <div class="integrity-bottom">
+        <section aria-labelledby="lead-quality-title">
+          <h2 class="subsection-title" id="lead-quality-title">Lead quality matrix</h2>
+          <div class="quality-matrix">
+            {% for lead in section('LEAD_QUALITY').values %}
+            <div class="lead-quality"><strong>{{ lead.label }}</strong><span>{{ lead.display_value }}</span></div>
+            {% endfor %}
+          </div>
+        </section>
+        <aside class="interpretation" aria-labelledby="recording-note-title">
+          <div class="section-label" id="recording-note-title">Recording note</div>
+          {% for note in section('RECORDING_NOTE').notes %}<p>{{ note }}</p>{% endfor %}
+        </aside>
+      </div>
+    </main>
+
+    {{ takeaway('Recording & Signal Integrity') }}
+    {{ page_footer('Recording record ' ~ display('TRACEABILITY_CHAIN', 'ECG source'), 2) }}
+  </article>
+
+  <article class="report-page" aria-labelledby="page-3-title">
+    {{ report_header() }}
+    <header class="page-header">
+      <div class="section-number">03</div>
+      <div><div class="page-kicker">Conventional baseline</div><h1 class="page-title" id="page-3-title">Standard ECG Assessment</h1></div>
+      <p class="clinical-question">What does the conventional ECG show?</p>
+    </header>
+
+    <main class="page-main standard-layout">
+      {{ metric_strip('RHYTHM_METRICS') }}
+
+      <div class="standard-evidence">
+        <figure class="figure beat-figure" aria-labelledby="beat-caption">
+          <div class="figure-header"><h2 class="figure-title">Figure 3.1 - Annotated representative beat</h2><span class="figure-scale">{{ placeholder }}</span></div>
+          {{ figure_placeholder(section('BEAT_VISUALIZATION').display_placeholder) }}
+          <figcaption class="figure-caption" id="beat-caption"><strong>Fiducial evidence:</strong> {{ section('BEAT_VISUALIZATION').display_placeholder }}</figcaption>
+        </figure>
+
+        <section aria-labelledby="standard-table-title">
+          <h2 class="subsection-title" id="standard-table-title">Conventional measurements</h2>
+          {{ measure_table('STANDARD_ECG_MEASUREMENTS') }}
+        </section>
+      </div>
+
+      {{ interpretation_block('STANDARD_ECG_INTERPRETATION', 'Standard ECG interpretation') }}
+    </main>
+
+    {{ takeaway('Standard ECG Assessment') }}
+    {{ page_footer('Reference configuration · signal processing completed', 3) }}
+  </article>
+
+  <article class="report-page" aria-labelledby="page-4-title">
+    {{ report_header() }}
+    <header class="page-header">
+      <div class="section-number">04</div>
+      <div><div class="page-kicker">Advanced atrial analysis</div><h1 class="page-title" id="page-4-title">Atrial Electrophysiology</h1></div>
+      <p class="clinical-question">Is atrial conduction abnormal?</p>
+    </header>
+
+    <main class="page-main atrial-layout">
+      <figure class="figure atrial-figure" aria-labelledby="atrial-caption">
+        <div class="figure-header"><h2 class="figure-title">Figure 4.1 - Surface and filtered P-wave overlay</h2><span class="figure-scale">{{ placeholder }}</span></div>
+        {{ figure_placeholder(section('ATRIAL_VISUALIZATION').display_placeholder) }}
+        <figcaption class="figure-caption" id="atrial-caption"><strong>Evidence shown before classification:</strong> {{ section('ATRIAL_VISUALIZATION').display_placeholder }}</figcaption>
+      </figure>
+
+      <div class="atrial-evidence">
+        <section aria-labelledby="atrial-criteria-title">
+          <h2 class="subsection-title" id="atrial-criteria-title">ALP evidence ladder</h2>
+          <ol class="criteria-list">
+            {% for criterion in section('ATRIAL_CRITERIA').values %}
+            <li class="criterion"><strong>{{ criterion.label }}</strong><p>{{ criterion.display_value }}</p></li>
+            {% endfor %}
+          </ol>
+        </section>
+
+        <section aria-labelledby="atrial-table-title">
+          <h2 class="subsection-title" id="atrial-table-title">Atrial measurements</h2>
+          {{ measure_table('ATRIAL_MEASUREMENTS') }}
+        </section>
+      </div>
+
+      {{ interpretation_block('ATRIAL_INTERPRETATION', 'Atrial interpretation') }}
+    </main>
+
+    {{ takeaway('Atrial Electrophysiology') }}
+    {{ page_footer('Atrial pipeline · signal processing completed', 4) }}
+  </article>
+
+  <article class="report-page" aria-labelledby="page-5-title">
+    {{ report_header() }}
+    <header class="page-header">
+      <div class="section-number">05</div>
+      <div><div class="page-kicker">Centerpiece analysis · SAECG</div><h1 class="page-title" id="page-5-title">Ventricular Electrophysiology</h1></div>
+      <p class="clinical-question">What evidence supports ventricular conduction abnormality?</p>
+    </header>
+
+    <main class="page-main ventricular-layout">
+      {% set verdict = section('VLP_VERDICT') %}
+      <section class="vlp-verdict" aria-label="Ventricular late potential verdict">
+        {{ status_pill(verdict.value('VLP classification')) }}
+        <div><strong>Ventricular late potentials</strong><p>{{ verdict.display('VLP classification') }}</p></div>
+        <div class="meta-value">VLP · {{ verdict.display('VLP classification') }}</div>
+      </section>
+
+      <section class="process-spine" aria-labelledby="saecg-process-title">
+        <h2 class="visually-hidden" id="saecg-process-title">SAECG processing and evidence chain</h2>
+        <div class="process-steps">
+          {% for step in section('SAECG_PROCESSING').values %}
+          <div class="process-step"><span class="process-index">{{ '%02d' % loop.index }}</span><strong>{{ step.label }}</strong><p>{{ step.display_value }}</p></div>
+          {% endfor %}
+        </div>
+        <div class="saecg-evidence">
+          <div class="mini-beats">
+            <div class="section-label">Raw beat alignment</div>
+            <div class="mini-beats-stack"></div>
+            <p>{{ section('SAECG_VISUALIZATION').display_placeholder }}</p>
+          </div>
+          <figure class="saecg-wave" aria-labelledby="saecg-caption">
+            {{ figure_placeholder(section('SAECG_VISUALIZATION').display_placeholder) }}
+            <figcaption class="figure-caption" id="saecg-caption"><strong>Figure 5.1 - Filtered signal-averaged terminal QRS.</strong> {{ section('SAECG_VISUALIZATION').display_placeholder }}</figcaption>
+          </figure>
+        </div>
+      </section>
+
+      <section class="ventricular-measures" aria-label="SAECG measurements">
+        {% for value in section('SAECG_PARAMETERS').values %}
+        <div class="metric">
+          <div class="metric-name">{{ value.label }}</div>
+          <div class="metric-value">{{ value.display_value }}{% if value.is_available and value.unit %} <span class="metric-unit">{{ value.unit }}</span>{% endif %}</div>
+          <div class="metric-ref">{{ value.reference or placeholder }}</div>
+        </div>
+        {% endfor %}
+      </section>
+
+      {{ interpretation_block('VENTRICULAR_INTERPRETATION', 'Ventricular interpretation') }}
+    </main>
+
+    {{ takeaway('Ventricular Electrophysiology') }}
+    {{ page_footer('SAECG pipeline · signal processing completed', 5) }}
+  </article>
+
+  <article class="report-page" aria-labelledby="page-6-title">
+    {{ report_header() }}
+    <header class="page-header">
+      <div class="section-number">06</div>
+      <div><div class="page-kicker">Ventricular recovery</div><h1 class="page-title" id="page-6-title">Repolarization Analysis</h1></div>
+      <p class="clinical-question">Are there repolarization abnormalities?</p>
+    </header>
+
+    <main class="page-main repolarization-layout">
+      <section class="timing-comparison" aria-label="Repolarization timing comparison">
+        {% for value in section('REPOLARIZATION_TIMING').values %}
+        <div class="timing-item">
+          <div class="timing-label"><span>{{ value.label }}</span>{{ status_pill(value) }}</div>
+          <div class="timing-scale"><span>{{ placeholder }}</span><strong>{{ value.display_value }}</strong><span>{{ placeholder }}</span></div>
+        </div>
+        {% endfor %}
+      </section>
+
+      <figure class="figure repolarization-figure" aria-labelledby="repolarization-caption">
+        <div class="figure-header"><h2 class="figure-title">Figure 6.1 - Annotated ST-T recovery interval</h2><span class="figure-scale">{{ placeholder }}</span></div>
+        {{ figure_placeholder(section('REPOLARIZATION_VISUALIZATION').display_placeholder) }}
+        <figcaption class="figure-caption" id="repolarization-caption"><strong>Measurement method:</strong> {{ section('REPOLARIZATION_VISUALIZATION').display_placeholder }}</figcaption>
+      </figure>
+
+      <div class="repolarization-bottom">
+        <section aria-labelledby="repolarization-table-title">
+          <h2 class="subsection-title" id="repolarization-table-title">Recovery measurements</h2>
+          {{ measure_table('REPOLARIZATION_ANALYSIS') }}
+        </section>
+        <section class="interpretation" aria-label="Repolarization interpretation">
+          <div class="section-label">Clinical interpretation</div>
+          <div class="interpretation-grid interpretation-grid--stack">
+            {% for value in section('REPOLARIZATION_INTERPRETATION').values %}
+            <div class="interpretation-part"><h4>{{ value.label }}</h4><p>{{ value.display_value }}</p></div>
+            {% endfor %}
+          </div>
+        </section>
+      </div>
+    </main>
+
+    {{ takeaway('Repolarization Analysis') }}
+    {{ page_footer('QT method · signal processing completed', 6) }}
+  </article>
+
+  <article class="report-page" aria-labelledby="page-7-title">
+    {{ report_header() }}
+    <header class="page-header">
+      <div class="section-number">07</div>
+      <div><div class="page-kicker">Cross-domain synthesis</div><h1 class="page-title" id="page-7-title">Integrated Clinical Assessment</h1></div>
+      <p class="clinical-question">What does the complete study mean clinically?</p>
+    </header>
+
+    <main class="page-main integrated-layout">
+      <section class="integrated-hero" aria-labelledby="integrated-impression-title">
+        <div class="section-label" id="integrated-impression-title">Overall electrophysiological impression</div>
+        <blockquote>{{ display('INTEGRATED_ASSESSMENT', 'Overall impression') }}</blockquote>
+        <footer>This computer-assisted synthesis is decision support, not a diagnosis. It must be interpreted by a qualified clinician in the context of symptoms, structural cardiac assessment, prior tracings and current treatment.</footer>
+      </section>
+
+      <section aria-labelledby="integrated-evidence-title">
+        <h2 class="subsection-title" id="integrated-evidence-title">Supporting evidence ledger</h2>
+        <div class="evidence-ledger">
+          {% for domain in section('EVIDENCE_LEDGER').values %}
+          <div class="evidence-row">
+            <div class="evidence-domain">{{ domain.label }}</div>
+            <div>{{ status_pill(domain) }}</div>
+            <div class="evidence-values">{{ domain.display_value }}</div>
+            <div class="evidence-meaning">{{ domain.display_value }}</div>
+          </div>
+          {% endfor %}
+        </div>
+      </section>
+
+      <div class="integration-bottom">
+        <section class="interpretation" aria-labelledby="correlation-title">
+          <div class="section-label" id="correlation-title">Clinical correlation</div>
+          <p>{{ display('INTEGRATED_ASSESSMENT', 'Clinical correlation') }}</p>
+        </section>
+        <section aria-labelledby="considerations-title">
+          <h2 class="subsection-title" id="considerations-title">Non-prescriptive considerations</h2>
+          <ul class="recommendations">
+            <li>{{ section('RECOMMENDATIONS').display_placeholder }}</li>
+          </ul>
+        </section>
+      </div>
+
+      <section class="review-checkpoints" aria-label="Clinical review documentation">
+        {% for checkpoint in section('CLINICAL_REVIEW').values %}
+        <div class="checkpoint">
+          <div class="section-label">Review checkpoint {{ '%02d' % loop.index }}</div>
+          <h3>{{ checkpoint.label }}</h3>
+          <p>Documented by the reviewing clinician.</p>
+          <div class="checkpoint-line">{{ checkpoint.display_value }}</div>
+        </div>
+        {% endfor %}
+      </section>
+    </main>
+
+    {{ takeaway('Integrated Clinical Assessment') }}
+    {{ page_footer('Decision support · clinician review required', 7) }}
+  </article>
+
+  <article class="report-page" aria-labelledby="page-8-title">
+    {{ report_header() }}
+    <header class="page-header">
+      <div class="section-number">08</div>
+      <div><div class="page-kicker">Audit and provenance</div><h1 class="page-title" id="page-8-title">Technical Appendix</h1></div>
+      <p class="clinical-question">Can this report be verified and reproduced?</p>
+    </header>
+
+    <main class="page-main appendix-layout">
+      <section aria-labelledby="traceability-title">
+        <h2 class="subsection-title" id="traceability-title">End-to-end traceability</h2>
+        <div class="trace-chain">
+          {% for node in section('TRACEABILITY_CHAIN').values %}
+          <div class="trace-node"><span>{{ '%02d' % loop.index }}</span><strong>{{ node.label }}</strong><p>{{ node.display_value }}</p></div>
+          {% endfor %}
+        </div>
+      </section>
+
+      <div class="technical-grid">
+        <div>
+          <section class="technical-section" aria-labelledby="acquisition-title">
+            <h3 id="acquisition-title">Acquisition record</h3>
+            {{ key_values('ACQUISITION_RECORD') }}
+          </section>
+          <section class="technical-section" aria-labelledby="quality-title">
+            <h3 id="quality-title">Signal and processing record</h3>
+            {{ key_values('PROCESSING_RECORD') }}
+          </section>
+        </div>
+
+        <div>
+          <section class="technical-section" aria-labelledby="software-title">
+            <h3 id="software-title">Software and algorithm record</h3>
+            {{ key_values('SOFTWARE_RECORD') }}
+          </section>
+          <section class="technical-section" aria-labelledby="provenance-title">
+            <h3 id="provenance-title">Report provenance</h3>
+            <dl>
+              {% for value in section('REPORT_PROVENANCE').values %}
+              <div class="key-value"><dt>{{ value.label }}</dt><dd>{{ value.display_value }}</dd></div>
+              {% endfor %}
+              <div class="key-value"><dt>Report template</dt><dd>{{ report.template_id }} {{ report.template_version }}</dd></div>
+              <div class="key-value"><dt>Pipeline version</dt><dd>{{ report.pipeline_version }}</dd></div>
+              <div class="key-value"><dt>Schema version</dt><dd>{{ report.schema_version }}</dd></div>
+            </dl>
+          </section>
+        </div>
+      </div>
+
+      <section aria-labelledby="method-provenance-title">
+        <h2 class="subsection-title" id="method-provenance-title">Measurement and rule provenance</h2>
+        <div class="method-provenance">
+          {% for method in section('METHOD_PROVENANCE').values %}
+          <div class="method-item"><strong>{{ method.label }}</strong><p>{{ method.display_value }}</p></div>
+          {% endfor %}
+        </div>
+      </section>
+
+      <section class="signature-grid" aria-label="Review and verification placeholders">
+        <div class="signature-box"><div class="section-label">Automated analysis record</div><p class="small-note">Generation job {{ report.job_id }}<br>Generated by {{ report.software_version }}</p><div class="signature-line">System record identifier · not a clinician signature</div></div>
+        <div class="signature-box"><div class="section-label">Clinical review</div><p class="small-note">Reviewer name, designation, registration number and review date</p><div class="signature-line">Authorized signature · pending</div></div>
+        <div class="verify-box"><div class="section-label">Verification</div><div class="qr-placeholder">QR<br>PLACEHOLDER</div><p class="small-note">Inactive in template</p></div>
+      </section>
+
+      <aside class="disclaimer"><strong>Clinical and regulatory limitation.</strong> This report is generated automatically and is decision support only. Unavailable sections are shown as explicit placeholders and contain no estimated values. It is not validated for diagnosis, patient risk estimation, treatment selection, electronic signing, or medical-record release. All decision limits, intended-use statements, references, labeling, algorithms and verification controls require approved product configuration and formal clinical, quality and regulatory review.</aside>
+    </main>
+
+    {{ takeaway('Technical Appendix') }}
+    {{ page_footer('Template ' ~ report.template_id ~ ' ' ~ report.template_version, 8) }}
+  </article>
+</body>
+</html>
